@@ -1,0 +1,114 @@
+/* */
+
+import java.util.*;
+
+class QuizQuestion{
+    private String question;
+    private String[] options;
+    private int correctOption;
+
+    public QuizQuestion(String question,String[] options,int correctOption){
+        this.question = question;
+        this.options = options;
+        this.correctOption = correctOption;
+    }
+
+    public String getQuestion(){
+        return question;
+    }
+    public String[] getOptions(){
+        return options;
+    }
+
+    public int getCorrectOption(){
+        return correctOption;
+    }
+}
+
+
+public class QuizApplication {
+    private List < QuizQuestion > questions;
+    private int score;
+    private Map <Integer,Boolean>results;
+
+    public QuizApplication(){
+        this.questions = new ArrayList<>();
+        this.score = 0;
+        this.results = new HashMap<>();
+        loadQuestions();
+    }
+    private void loadQuestions(){
+        questions.add(new QuizQuestion("what is the capital of France?",new String[]{"1.Paris","2.Rome","3.Berlin","4. Madrid"},1));
+        questions.add(new QuizQuestion("who wrote 'Romeo and Juliet'?",new String[]{"1.Charles Dickens","2.William Shakespeare","3.Mark tawin","4. Madrid"},2));
+        questions.add(new QuizQuestion("what is the bolling point of water?",new String[]{"1.50C","2.75C","3.100C","4. 150C"},3));
+        questions.add(new QuizQuestion("what is 5 + 7?",new String[]{"1.10","2.12","3.13","4. 14"},2));
+        questions.add(new QuizQuestion("which planet is known as the Red planet?",new String[]{"1.Venus","2.Mars","3.jupiter","4. Saturn"},2));
+
+    }
+    public void startQuiz(){
+        Scanner scanner = new Scanner(System.in);
+        for(int i = 0; i < questions.size();i++){
+            QuizQuestion currentQuestion = questions.get(i);
+            System.out.println("\nQuestion"+(i+1)+":"+currentQuestion.getQuestion());
+
+            for(String option : currentQuestion.getOptions()){
+                System.out.println(option);
+            }
+            Timer timer = new Timer();
+            TimerTask task = new TimerTask(){
+                @Override
+                public void run(){
+                    System.out.println("\nTime's up! Moving to the next question.");
+                    synchronized(scanner){
+                        scanner.notify();
+                    }
+                }
+            };
+            timer.schedule(task, 15000);
+            System.out.println("Enter your answer(1-4):");
+            synchronized(scanner){
+                try{
+                    scanner.wait(15000);
+                }catch(InterruptedException e){
+                    System.out.println("Error:"+e.getMessage());
+                }
+            }
+            timer.cancel();
+            if(scanner.hasNextInt()){
+                int userAnswer = scanner.nextInt();
+
+                if(userAnswer == currentQuestion.getCorrectOption()){
+                    System.out.println("Correct!");
+                    score++;
+                    results.put(i+1,true);
+                }else{
+                    System.out.println("Incorrect. The correct answer was option"+currentQuestion.getCorrectOption()+".");
+                    results.put(i+1, false);
+                }
+            }else{
+                System.out.println("No answer provided. Moving to the next question.");
+                results.put(i+1,false);
+            }
+
+            scanner.nextLine();
+
+        
+             
+        }
+        displayResults();
+    }
+    private void displayResults(){
+        System.out.println("\n---Quiz Results---");
+        System.out.println("your score:"+score+"/"+questions.size());
+        for(int i = 1;i<= results.size();i++){
+            String result = results.get(i)?"Correct":"Incorrect";
+            System.out.println("Question"+i+":"+results);
+        }
+
+    }
+    public static void main(String[] args) {
+        QuizApplication quizApp = new QuizApplication();
+        quizApp.startQuiz();
+    }
+    
+}
